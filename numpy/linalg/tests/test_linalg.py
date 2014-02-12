@@ -12,7 +12,7 @@ import numpy as np
 from numpy import array, single, double, csingle, cdouble, dot, identity
 from numpy import multiply, atleast_2d, inf, asarray, matrix
 from numpy import linalg
-from numpy.linalg import matrix_power, norm, matrix_rank
+from numpy.linalg import matrix_power, norm, matrix_rank, LinAlgError
 from numpy.testing import (
     assert_, assert_equal, assert_raises, assert_array_equal,
     assert_almost_equal, assert_allclose, run_module_suite,
@@ -967,6 +967,12 @@ class TestMatrixRank(object):
         yield assert_raises, TypeError, matrix_rank, np.zeros((2, 2, 2))
         # works on scalar
         yield assert_equal, matrix_rank(1), 1
+        # numerically singular on account of bad scaling
+        yield assert_equal, matrix_rank([[1e300, 0], [0, 1]]), 1
+        # matrix rank fails for inf and nan
+        yield assert_raises, LinAlgError, matrix_rank([[1e3000, 0], [0, 1]])
+        yield assert_raises, LinAlgError, matrix_rank([[np.inf, 0], [0, 1]])
+        yield assert_raises, LinAlgError, matrix_rank([[np.nan, 0], [0, 1]])
 
 
 def test_reduced_rank():

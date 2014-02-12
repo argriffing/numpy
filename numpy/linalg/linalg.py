@@ -23,7 +23,7 @@ from numpy.core import (
     csingle, cdouble, inexact, complexfloating, newaxis, ravel, all, Inf, dot,
     add, multiply, sqrt, maximum, fastCopyAndTranspose, sum, isfinite, size,
     finfo, errstate, geterrobj, longdouble, rollaxis, amin, amax, product, abs,
-    broadcast
+    broadcast, isnan
     )
 from numpy.lib import triu, asfarray
 from numpy.linalg import lapack_lite, _umath_linalg
@@ -1511,6 +1511,8 @@ def matrix_rank(M, tol=None):
     S = svd(M, compute_uv=False)
     if tol is None:
         tol = S.max() * max(M.shape) * finfo(S.dtype).eps
+    if isnan(tol):
+        raise LinAlgError('failed to compute the numerical rank')
     return sum(S > tol)
 
 
