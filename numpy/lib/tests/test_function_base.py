@@ -1836,6 +1836,10 @@ class TestMedian(TestCase):
         a = MySubClass([1,2,3])
         assert_equal(np.median(a), -7)
 
+    def test_matrix(self):
+        a = np.matrix([[0, 1, 2]])
+        assert_equal(np.median(a), 1)
+
 
 class TestAdd_newdoc_ufunc(TestCase):
 
