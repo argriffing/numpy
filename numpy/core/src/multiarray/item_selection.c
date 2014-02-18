@@ -96,7 +96,7 @@ PyArray_TakeFrom(PyArrayObject *self0, PyObject *indices0, int axis,
             goto fail;
         }
 
-        if (clipmode == NPY_RAISE) {
+        if (func == NULL && clipmode == NPY_RAISE) {
             /*
              * we need to make sure and get a copy
              * so the input array is not changed
@@ -127,6 +127,16 @@ PyArray_TakeFrom(PyArrayObject *self0, PyObject *indices0, int axis,
         goto fail;
     }
 
+    /* Check for out of bounds */
+    if (func == NULL && clipmode == NPY_RAISE) {
+        for (j = 0; j < m; j++) {
+            tmp = ((npy_intp *)(PyArray_DATA(indices)))[j];
+            if (f_check_index(&tmp, max_item, axis) < 0) {
+                goto fail;
+            }
+        }
+    }
+
     func = PyArray_DESCR(self)->f->fasttake;
     if (func == NULL) {
         switch(clipmode) {
@@ -134,9 +144,7 @@ PyArray_TakeFrom(PyArrayObject *self0, PyObject *indices0, int axis,
             for (i = 0; i < n; i++) {
                 for (j = 0; j < m; j++) {
                     tmp = ((npy_intp *)(PyArray_DATA(indices)))[j];
-                    if (check_and_adjust_index(&tmp, max_item, axis) < 0) {
-                        goto fail;
-                    }
+                    f_adjust_index(&tmp, max_item);
                     tmp_src = src + tmp * chunk;
                     if (needs_refcounting) {
                         for (k=0; k < nelem; k++) {

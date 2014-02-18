@@ -63,16 +63,8 @@ offset_bounds_from_strides(const int itemsize, const int nd,
 NPY_NO_EXPORT PyObject *
 convert_shape_to_string(npy_intp n, npy_intp *vals, char *ending);
 
-
-/*
- * Returns -1 and sets an exception if *index is an invalid index for
- * an array of size max_item, otherwise adjusts it in place to be
- * 0 <= *index < max_item, and returns 0.
- * 'axis' should be the array axis that is being indexed over, if known. If
- * unknown, use -1.
- */
 static NPY_INLINE int
-check_and_adjust_index(npy_intp *index, npy_intp max_item, int axis)
+f_check_index(npy_intp *index, npy_intp max_item, int axis)
 {
     /* Check that index is valid, taking into account negative indices */
     if (NPY_UNLIKELY((*index < -max_item) || (*index >= max_item))) {
@@ -90,10 +82,34 @@ check_and_adjust_index(npy_intp *index, npy_intp max_item, int axis)
         }
         return -1;
     }
-    /* adjust negative indices */
+    return 0;
+}
+
+
+/* adjust negative indices */
+static NPY_INLINE int
+f_adjust_index(npy_intp *index, npy_intp max_item)
+{
     if (*index < 0) {
         *index += max_item;
     }
+    return 0;
+}
+
+/*
+ * Returns -1 and sets an exception if *index is an invalid index for
+ * an array of size max_item, otherwise adjusts it in place to be
+ * 0 <= *index < max_item, and returns 0.
+ * 'axis' should be the array axis that is being indexed over, if known. If
+ * unknown, use -1.
+ */
+static NPY_INLINE int
+check_and_adjust_index(npy_intp *index, npy_intp max_item, int axis)
+{
+    if (f_check_index(index, max_item, axis) < 0) {
+        return -1;
+    }
+    f_adjust_index(index, max_item);
     return 0;
 }
 
